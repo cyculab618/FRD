@@ -94,7 +94,7 @@ python main.py --model deit_small_MCTformerV2_patch16_224 --data-set VOC12MS --s
 #--img-list Here select_image.txt is used to generate attention maps for the specified samples
 
 
-### Verify the results
+## Verify the results
 python evaluation.py --list select_image.txt --data-set VOC12 --data-path ./dataset/VOC2012_org --type npy --predict_dir ./result_dir/MCTformer_results/VOC2012_org/attn-patchrefine-npy-ms --curve True --start 38 --comment eval_result
 
 #--data-path The dataset path
