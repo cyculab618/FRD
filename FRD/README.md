@@ -69,21 +69,24 @@ Please consider citing our paper if the code is helpful in your research and dev
 
 ## Complete folder format
 
--VOC2012_org-
-				-all_data.txt
-				-cls_labels.txt
-				-train_aug_id.txt
-				-select_image.txt
-				-train_id.txt
-				-val_id.txt
-				-voc12-----------
-								 -VOCdevkit-		
-										   -VOC2012-
-												   -ImageSets
-											       -JPEGImages		
-												   -SegmentationClass				
-												   -SegmentationClassAug			
-												   -SlopeImages
+
+VOC2012_org/
+├─ all_data.txt
+├─ cls_labels.txt
+├─ train_aug_id.txt
+├─ select_image.txt
+├─ train_id.txt
+├─ val_id.txt
+└─ voc12/
+   └─ VOCdevkit/
+      └─ VOC2012/
+         ├─ ImageSets/
+         ├─ JPEGImages/
+         ├─ SegmentationClass/
+         ├─ SegmentationClassAug/
+         └─ SlopeImages/
+
+
 ### Generate attention maps
 python main.py --model deit_small_MCTformerV2_patch16_224 --data-set VOC12MS --scales 1.0 --img-list train_id.txt --data-path ./dataset/VOC2012_org --output_dir ./result_dir/MCTformer_results/VOC2012_org --resume ./ckpt/FRD_VOC_checkpoint.pth --gen_attention_maps --attention-type fused --layer-index 12 --cam-npy-dir ./result_dir/MCTformer_results/VOC2012_org/attn-patchrefine-npy-ms
 
