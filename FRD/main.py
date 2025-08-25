@@ -44,22 +44,11 @@ def get_args_parser():
     # image channel
     parser.add_argument('--image-ch', type=int, default=3)
 
-    # FPR parameters
-    parser.add_argument("--use-FPR",action="store_true", default=True)
-    parser.add_argument("--no-use-FPR", action="store_false", dest="use_FPR")
-    parser.add_argument("--RC_weight", default=12e-2, type=float)
-    parser.add_argument("--PR_weight", default=15e-5, type=float)
-    parser.add_argument("--cluster-data-list", default='train_aug_id.txt', type=str)
-    parser.add_argument("--tempt", default=13, type=float)
-    parser.add_argument("--mask_thresh", default=0.45, type=float)
-    parser.add_argument("--num_cluster", default=10, type=int)
-    parser.add_argument("--RC_use_FP", action="store_true")
-    parser.add_argument("--RC_use_both", action="store_true")
-    parser.add_argument("--return_fine", action="store_true", default=True)
-    parser.add_argument("--no-return_fine", action="store_false")
-    parser.add_argument("--FPR-start-epoch",  default=0, type=int)
-    parser.add_argument("--FPR-stop-epoch",  default=60, type=int)
-    parser.add_argument("--save-all-prototypes", action="store_true")
+
+    parser.add_argument('--return_fine', action='store_true', default=True) #
+    parser.add_argument('--no-return_fine', action='store_false', dest='return_fine') #
+    parser.add_argument('--mask_thresh', type=float, default=0.49)  # 
+    parser.add_argument('--tempt', type=float, default=13)          # 
 
     # prototype parameters
     parser.add_argument("--use-prototypes", action="store_true")

@@ -11,7 +11,6 @@ import numpy as np
 import cv2
 import os
 from pathlib import Path
-from cluster_utils_re import get_regional_cluster
 
 def train_one_epoch(model: torch.nn.Module, data_loader: Iterable,
                     args, optimizer: torch.optim.Optimizer, device: torch.device,
@@ -24,10 +23,7 @@ def train_one_epoch(model: torch.nn.Module, data_loader: Iterable,
     print_freq = 10
     num_class = args.nb_classes
     vis_path = os.path.join(output_dir, '{}_imgs_for_cluster'.format(epoch))
-    if args.use_FPR and epoch >= args.FPR_start_epoch and epoch <= args.FPR_stop_epoch:
-        pos_feats, neg_feats, cur_neg_feats_unshared = get_regional_cluster(
-            vis_path, model, args, num_cls=num_class, num_cluster=args.num_cluster, region_thresh=args.mask_thresh)
-        pass
+    
     model.train(set_training_mode)
     for samples, targets in metric_logger.log_every(data_loader, print_freq, header):
         samples = samples.to(device, non_blocking=True)
@@ -42,41 +38,13 @@ def train_one_epoch(model: torch.nn.Module, data_loader: Iterable,
             metric_logger.update(pat_loss=ploss.item())
             loss = loss + ploss
 
-            if args.use_FPR and epoch >= args.FPR_start_epoch and epoch <= args.FPR_stop_epoch:
-                # ======================== loss_RC
-                # loss_dis_pos, loss_dis_neg, logits, cams, pred_feats, FP_per_iter, loss_FP_pos, loss_FP_neg = get_region_contrast_loss(
-                #                                                                                              model, device, samples, targets, pos_feats,
-                #                                                                                              neg_feats, args.tempt, args.mask_thresh,
-                #                                                                                              args.RC_use_FP, args.return_fine, num_class,
-                #                                                                                              FP_threshold, args.RC_use_both)
-                loss_dis_pos, loss_dis_neg, loss_FP_pos, loss_FP_neg = get_region_contrast_loss(
-                    device, patch_logit, feat, cams, targets, pos_feats, neg_feats, args.tempt, args.mask_thresh, args.RC_use_FP, num_class, args.RC_use_both)
-                if not args.RC_use_FP and not args.RC_use_both:
-                    loss_RC = (loss_dis_pos + loss_dis_neg) * args.RC_weight
-                elif args.RC_use_FP and not args.RC_use_both:
-                    loss_RC = (loss_FP_pos + loss_FP_neg) * args.RC_weight
-                elif args.RC_use_both:
-                    loss_RC = (loss_dis_pos + loss_dis_neg + loss_FP_pos + loss_FP_neg) * args.RC_weight * 0.5
-                metric_logger.update(loss_dis_pos=loss_dis_pos.item())
-                metric_logger.update(loss_dis_neg=loss_dis_neg.item())
-                metric_logger.update(loss_FP_pos=loss_FP_pos.item())
-                metric_logger.update(loss_FP_neg=loss_FP_neg.item())
-                metric_logger.update(loss_RC=loss_RC.item())
-                
-                loss = loss + loss_RC
-
-                # ========================= loss_PR
-                loss_PR = get_pixel_rectification_loss(cams, targets, feat, pos_feats, cur_neg_feats_unshared, args.mask_thresh, device)
-                loss_PR = loss_PR * args.PR_weight
-                metric_logger.update(loss_PR=loss_PR.item())
-                loss = loss + loss_PR 
-            else:
-                loss_RC = torch.tensor(0.0).to(device)
-                loss_PR = torch.tensor(0.0).to(device)
-                metric_logger.update(loss_RC=loss_RC.item())
-                metric_logger.update(loss_PR=loss_PR.item())
+    
+            loss_RC = torch.tensor(0.0).to(device)
+            loss_PR = torch.tensor(0.0).to(device)
+            metric_logger.update(loss_RC=loss_RC.item())
+            metric_logger.update(loss_PR=loss_PR.item())
             
-            if args.use_prototypes and epoch >= args.prototypes_start_epoch:
+            if args.use_prototypes and epoch >= args.prototypes_start_epoch: #[FRD] prototypes loss
                 if not args.prototypes_use_only_TP and not args.prototypes_use_only_FP: # use both
                     loss_choosen = 0
                 elif args.prototypes_use_only_TP and not args.prototypes_use_only_FP: # use TP
@@ -357,183 +325,6 @@ def vis_patch_attn(patch_attn, output_dir):
     ax.set_xticks([])
     ax.set_yticks([])
     plt.savefig(output_dir)
-
-
-def get_region_contrast_loss(device, patch_logit, feats, cams, target, clustered_pos, clustered_neg, temperature, mask_threshold, use_FP, num_class, use_both=False):
-    """
-    calculating the distance between the image feature and clustered embedding
-    Args:
-        model:
-        data: imgs with shape [bs, 3, h, w]
-        target: with shape [bs, num_cls]
-        clustered_pos: the positive regional feature embedding. [num_cls, num_pos_k, C]
-        clustered_neg: the negative regional feature embedding. [num_cls, num_neg_k, C]
-        temperature: the hyper-param temperature
-        mask_thresh: the value to filter background
-    Return:
-        loss_pos: the distances with shape [num_present_cls, 1] the 1 is argmin of $num_k distance
-        loss_neg: the distances with shape [num_present_cls, num_neg_k]
-        logits: the logits for each class [bs, num_cls]
-    """
-
-    def exp_similarity(a, b, temperature):
-        """
-        calculate the distance of a, b. return the exp{-L1(a,b)}
-        """
-        if len(b) == 0 or len(a) == 0:  # no clusters
-            return torch.Tensor([0.5]).to(a.device)
-
-        # print(f"pos feat shape: {a.shape}, cls_norm_cam shape: {b.shape}")
-        dis = ((a - b) ** 2 + 1e-4).mean(1)
-        dis = torch.sqrt(dis)
-        dis = dis / temperature + 0.1  # prevent too large gradient
-        return torch.exp(-dis)
-
-    pos_loss = []
-    neg_loss = []
-    fp_pos_loss = []
-    fp_neg_loss = []
-    TP_per_iter = [0 for _ in range(num_class)]
-    norm_cams = (cams - cams.flatten(-2).min(-1)[0][...,None,None]) / (cams.flatten(-2).max(-1)[0][...,None,None]- cams.flatten(-2).min(-1)[0][...,None,None] + 1e-3)
-    norm_cams = (norm_cams > mask_threshold).detach().flatten(2)  # [B, K, HW]
-    feats = feats.flatten(2)  # [B, C, HW]
-    cal_use_TP = False
-    cal_use_FP = False
-    if not use_FP or use_both:
-        cal_use_TP = True
-    if use_FP or use_both:
-        cal_use_FP = True
-    
-    for feat, norm_cam, cam, gt in zip(feats, norm_cams, cams, target):
-        for idx, is_exist in enumerate(gt):
-            if is_exist:
-                TP_per_iter[idx] += 1
-
-            if cam[idx].max() <= 0 or len(clustered_pos[idx]) == 0 or len(clustered_neg[idx]) == 0 or norm_cam[idx].sum() == 0:
-                continue
-            
-            cls_norm_cam = norm_cam[idx]
-            region_feat = feat[:,cls_norm_cam].mean(-1)
-
-            if cal_use_TP and is_exist and region_feat.sum() > 0:
-                # distance to pos clusters
-                pos_feat = clustered_pos[idx].mean(0, keepdim=True)
-                pos_prob = exp_similarity(region_feat[None], pos_feat, temperature=temperature)
-                loss_pos = -torch.log(pos_prob)
-                # print(f"pos_prob: {pos_prob}, loss_pos: {loss_pos}, loss_pos.squeeze(): {loss_pos.squeeze()}")
-                pos_loss.append(loss_pos.squeeze())
-
-                # distance to neg clusters
-                neg_feat = clustered_neg[idx]
-                neg_prob = exp_similarity(region_feat[None], neg_feat, temperature=temperature).max()
-                loss_neg = -torch.log(1 - neg_prob)
-                # print(f"region_feat[None].shape: {region_feat[None].shape}, neg_feat shape: {neg_feat.shape}")
-                # print(f"neg_prob: {neg_prob}, loss_neg: {loss_neg}")
-                neg_loss.append(loss_neg)
-    
-    # print(f"Tp_per_iter: {TP_per_iter}")
-    if cal_use_FP:
-        for cls_idx in range(num_class):
-            if len(clustered_pos[cls_idx]) == 0 or len(clustered_neg[cls_idx]) == 0:
-                continue
-
-            probs_for_cls_idx = patch_logit[:, cls_idx]
-            gt_for_cls_idx = target[:, cls_idx]
-            neg_probs_for_cls_idx = probs_for_cls_idx[gt_for_cls_idx == 0]
-            # print(f"probs_for_cls_idx: {probs_for_cls_idx.shape}, neg_probs_for_cls_idx: {neg_probs_for_cls_idx.shape}")
-            neg_cams = cams[gt_for_cls_idx == 0]
-            # print(f"cam shape: {cams.shape}, neg_cams shape: {neg_cams.shape}")
-            neg_norm_cams = norm_cams[gt_for_cls_idx == 0]
-            # print(f"norm_cams shape: {norm_cams.shape}, neg_norm_cams shape: {neg_norm_cams.shape}")
-            neg_out_features = feats[gt_for_cls_idx == 0]
-            # print(f"feats shape: {feats.shape}, neg_out_features shape: {neg_out_features.shape}")
-            num_k = min(len(neg_probs_for_cls_idx), TP_per_iter[cls_idx])
-            if num_k == 0:
-                continue
-            top_prob_idx = torch.topk(neg_probs_for_cls_idx, num_k)[1]
-            pos_feat = clustered_pos[cls_idx].mean(0, keepdim=True)
-            neg_feat = clustered_neg[cls_idx]
-            for item_idx in top_prob_idx:
-                if neg_cams[item_idx][cls_idx].max() <= 0 or neg_norm_cams[item_idx][cls_idx].sum() == 0:
-                    continue
-
-                cls_norm_cam = neg_norm_cams[item_idx][cls_idx]
-                feat = neg_out_features[item_idx]
-                # print(f"neg feat shape: {feat.shape}, cls_norm_cam shape: {cls_norm_cam.shape}")
-                # region_feat = (feat * cls_norm_cam[None]).sum(1) / (cls_norm_cam.sum() + 1e-5)
-                region_feat = feat[:,cls_norm_cam].mean(-1)
-                if region_feat.sum() <= 0:
-                    continue
-                
-                pos_prob = exp_similarity(region_feat[None], pos_feat, temperature=temperature)
-                loss_pos = -torch.log(1 - pos_prob)
-                # print(f"pos_prob: {pos_prob}, loss_pos: {loss_pos}, squeeze: {loss_pos.squeeze()}")
-                loss_pos = loss_pos.squeeze()
-                if not torch.isnan(loss_pos):
-                    fp_pos_loss.append(loss_pos)
-
-                neg_prob = exp_similarity(region_feat[None], neg_feat, temperature=temperature).max()
-                loss_neg = -torch.log(neg_prob)
-                # print(f"neg_prob: {neg_prob}, loss_neg: {loss_neg}")
-                if not torch.isnan(loss_neg):
-                    fp_neg_loss.append(loss_neg)
-
-    loss_pos = torch.stack(pos_loss).mean() if len(pos_loss) > 0 else torch.tensor(0.0).to(device)
-    loss_neg = torch.stack(neg_loss).mean() if len(neg_loss) > 0 else torch.tensor(0.0).to(device)
-    loss_FP_pos = torch.stack(fp_pos_loss).mean() if len(fp_pos_loss) > 0 else torch.tensor(0.0).to(device)
-    loss_FP_neg = torch.stack(fp_neg_loss).mean() if len(fp_neg_loss) > 0 else torch.tensor(0.0).to(device)
-    # print(f"loss_pos: {loss_pos}, loss_neg: {loss_neg}, loss_FP_pos: {loss_FP_pos}, loss_FP_neg: {loss_FP_neg}")
-    return loss_pos, loss_neg, loss_FP_pos, loss_FP_neg
-
-def get_pixel_rectification_loss(cams, label, pred_feats, pos_feats, neg_feats, mask_thresh, device):
-    """
-    Args:
-        cams: with shape of [bs, 20, H ,W]
-        label: with shape of [bs, 20]
-        pred_feats: with shape of [bs, C, H, W]
-        pos_feats: with shape of [20, N_cluster, C]
-        neg_feats: with shape of [20, N_cluster, C]
-        mask_thresh: the threshold to filter background
-    Return:
-        loss_revise: the loss for decreasing the prob of foreground pixels which is more closed to negative pixel
-        loss_seg: the loss for supervising the segmentation output
-    """
-
-    def closest_dis(a, b):
-        """
-        Args:
-            a: with shape of [1, C, HW]
-            b: with shape of [num_clusters, C, 1]
-        Return:
-            dis: with shape of [HW]
-        """
-        if len(b) == 0 or len(a) == 0:  # no clusters
-            return torch.Tensor([123456]).to(a.device)
-        dis = ((a - b) ** 2).mean(1)
-        return dis.min(0)[0]
-    
-    # 1. norm
-    bs, num_cls = label.shape
-    norm_cams = (cams - cams.flatten(-2).min(-1)[0][...,None,None]) / (cams.flatten(-2).max(-1)[0][...,None,None]- cams.flatten(-2).min(-1)[0][...,None,None] + 1e-3)
-    norm_cams = (norm_cams > mask_thresh).detach().flatten(2)  # [B, K, HW]
-
-    # 2. calculate the negative pixels
-    pred_feats = pred_feats.flatten(2)
-    cams = cams.flatten(2)
-    probs = []  # the pixels to decrease
-    for bs_id in range(bs):
-        for cls_id in range(num_cls):
-            if label[bs_id][cls_id]:
-                dis_pos = closest_dis(pred_feats[bs_id][None], pos_feats[cls_id][..., None])
-                dis_neg = closest_dis(pred_feats[bs_id][None], neg_feats[cls_id][..., None])
-
-                fp_location = (norm_cams[bs_id][cls_id] > mask_thresh) * (dis_pos > dis_neg)
-                fp_pixels = cams[bs_id][cls_id][fp_location]
-                if len(fp_pixels) > 0:
-                    probs.append(fp_pixels)
-
-    pr_loss = torch.cat(probs).mean() if len(probs) > 0 else torch.tensor(0.0).to(device)
-    return pr_loss
 
 
 def get_prototypes_loss(device, patch_logit, feats, cams, target, temperature, mask_threshold, num_class, TP_use_patch=False, FP_use_patch=False, loss_choosen=0, num_k=1):
