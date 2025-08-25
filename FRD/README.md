@@ -89,21 +89,25 @@ VOC2012_org/
 ```
 
 ### Generate attention maps
-python main.py --model deit_small_MCTformerV2_patch16_224 --data-set VOC12MS --scales 1.0 --img-list train_id.txt --data-path ./dataset/VOC2012_org --output_dir ./result_dir/MCTformer_results/VOC2012_org --resume ./ckpt/FRD_VOC_checkpoint.pth --gen_attention_maps --attention-type fused --layer-index 12 --cam-npy-dir ./result_dir/MCTformer_results/VOC2012_org/attn-patchrefine-npy-ms
+python main.py --model deit_small_MCTformerV2_patch16_224 --data-set VOC12MS --img-list train_id.txt --data-path ./dataset/VOC2012_org --output_dir ./result_dir/MCTformer_results/VOC2012_org --resume ./ckpt/FRD_VOC_checkpoint.pth --gen_attention_maps --attention-type fused --layer-index 12 --cam-npy-dir ./result_dir/MCTformer_results/VOC2012_org/attn-patchrefine-npy-ms
 
 --data-path The dataset path
+--img-list Here train_id.txt is used to generate attention maps 
 --output_dir  Output path
 --resume   load the trained checkpoint
 --cam-npy-dir Generated attention maps path
---img-list Here train_id.txt is used to generate attention maps for the specified samples
-
+--gen_attention_maps  Enable CAM generation mode (no training; use --resume; outputs to --cam-npy-dir)
+--attention-type      CAM type. 'fused' = class-token + patch affinity (default)
+--layer-index         Transformer block index for CAM (e.g., 12 = last layer; default 12)
 
 ### Verify the results
 python evaluation.py --list train_id.txt --data-set VOC12 --data-path ./dataset/VOC2012_org --type npy --predict_dir ./result_dir/MCTformer_results/VOC2012_org/attn-patchrefine-npy-ms --curve True --start 38 --comment eval_result
 
 --data-path The dataset path
 --predict_dir Please use the same path as the --cam-npy-dir in the previous command.
-
+--start       Threshold start
+--curve       Sweep thresholds and report the best mIoU（True/False）
+--comment     A tag written to eval record/log（e.g.eval_result）
 
 ## After verification, please change the following --t parameter to the optimal threshold output after running the above results
 Example If it is 0.59, please fill in -- 59
