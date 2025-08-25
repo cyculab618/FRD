@@ -84,14 +84,14 @@ python main.py --model deit_small_MCTformerV2_patch16_224
 --layer-index 12 --cam-npy-dir ./result_dir/MCTformer_results/VOC2012_org/attn-patchrefine-npy-ms
 ```
 
---data-path The dataset path  
---img-list Here train_id.txt is used to generate attention maps  
---output_dir  Output path  
---resume   load the trained checkpoint  
---cam-npy-dir Generated attention maps path  
---gen_attention_maps  Enable CAM generation mode (no training; use --resume; outputs to --cam-npy-dir)  
---attention-type  CAM type. 'fused' = class-token + patch affinity (default)  
---layer-index   Transformer block index for CAM (e.g., 12 = last layer; default 12)  
+>--data-path The dataset path  
+>--img-list Here train_id.txt is used to generate attention maps  
+>--output_dir  Output path  
+>--resume   load the trained checkpoint  
+>--cam-npy-dir Generated attention maps path  
+>--gen_attention_maps  Enable CAM generation mode (no training; use --resume; outputs to --cam-npy-dir)  
+>--attention-type  CAM type. 'fused' = class-token + patch affinity (default)  
+>--layer-index   Transformer block index for CAM (e.g., 12 = last layer; default 12)  
 
 
 ### Verify the results
@@ -101,11 +101,11 @@ python evaluation.py --list train_id.txt --data-set VOC12 --data-path ./dataset/
 --curve True --start 38 --comment eval_result
 ```
 
---data-path The dataset path  
---predict_dir Please use the same path as the --cam-npy-dir in the previous command.  
---start    Threshold start  
---curve    Sweep thresholds and report the best mIoU（True/False）  
---comment   A tag written to eval record/log（e.g.eval_result）  
+>--data-path The dataset path  
+>--predict_dir Please use the same path as the --cam-npy-dir in the previous command.  
+>--start    Threshold start  
+>--curve    Sweep thresholds and report the best mIoU（True/False）  
+>--comment   A tag written to eval record/log（e.g.eval_result）  
 
 
 ## After verification, please change the following --t parameter to the optimal threshold output after running the above results
@@ -118,5 +118,5 @@ python evaluation.py --list train_id.txt --data-set VOC12 --data-path ./dataset/
 --t 59 --out-dir ./result_dir/MCTformer_results/VOC2012_org/pseudo-mask-ms-crf --out-crf 
 ```
 
---predict_dir Please use the same path as the --predict_dir in the previous command.  
---out-dir For the pseudo label path, please put it in the same folder, for example, put it in ./result_dir/MCTformer_results/FRD_20220311_6m/. In this folder, the pseudo-mask-ms-crf is here
+>--predict_dir Please use the same path as the --predict_dir in the previous command.  
+>--out-dir For the pseudo label path, please put it in the same folder, for example, put it in ./result_dir/MCTformer_results/FRD_20220311_6m/. In this folder, the pseudo-mask-ms-crf is here
