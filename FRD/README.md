@@ -13,7 +13,7 @@ Fig.1 - Overview of MCTformer
 
 
 
-# FRD: False-Region Debiasing for WSSS (on top of MCTformer)
+# FRD: Feature Representation Discrepancy for WSSS (on top of MCTformer)
 
 This repository contains our FRD implementation and utilities to:
 - generate CAMs,
@@ -54,24 +54,6 @@ VOC2012_org/
          ├─ SegmentationClassAug/
          └─ SlopeImages/
 ```
-
-### Generate attention maps
-```text
-python main.py --model deit_small_MCTformerV2_patch16_224 
---data-set VOC12MS --img-list train_id.txt \
---data-path ./dataset/VOC2012_org --output_dir ./result_dir/MCTformer_results/VOC2012_org \
---resume ./ckpt/FRD_VOC_checkpoint.pth --gen_attention_maps --attention-type fused \
---layer-index 12 --cam-npy-dir ./result_dir/MCTformer_results/VOC2012_org/attn-patchrefine-npy-ms
-```
-
---data-path The dataset path  
---img-list Here train_id.txt is used to generate attention maps  
---output_dir  Output path  
---resume   load the trained checkpoint  
---cam-npy-dir Generated attention maps path  
---gen_attention_maps  Enable CAM generation mode (no training; use --resume; outputs to --cam-npy-dir)  
---attention-type  CAM type. 'fused' = class-token + patch affinity (default)  
---layer-index   Transformer block index for CAM (e.g., 12 = last layer; default 12)  
 #### Pesudo Seed Result
 #### PASCAL VOC 2012 dataset
 <table>
@@ -92,6 +74,25 @@ python main.py --model deit_small_MCTformerV2_patch16_224
     </tr>
   </tbody>
 </table>
+
+### Generate attention maps
+```text
+python main.py --model deit_small_MCTformerV2_patch16_224 
+--data-set VOC12MS --img-list train_id.txt \
+--data-path ./dataset/VOC2012_org --output_dir ./result_dir/MCTformer_results/VOC2012_org \
+--resume ./ckpt/FRD_VOC_checkpoint.pth --gen_attention_maps --attention-type fused \
+--layer-index 12 --cam-npy-dir ./result_dir/MCTformer_results/VOC2012_org/attn-patchrefine-npy-ms
+```
+
+--data-path The dataset path  
+--img-list Here train_id.txt is used to generate attention maps  
+--output_dir  Output path  
+--resume   load the trained checkpoint  
+--cam-npy-dir Generated attention maps path  
+--gen_attention_maps  Enable CAM generation mode (no training; use --resume; outputs to --cam-npy-dir)  
+--attention-type  CAM type. 'fused' = class-token + patch affinity (default)  
+--layer-index   Transformer block index for CAM (e.g., 12 = last layer; default 12)  
+
 
 ### Verify the results
 ```text
