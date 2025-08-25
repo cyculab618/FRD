@@ -13,10 +13,6 @@ Fig.1 - Overview of MCTformer
 
 
 
-
-
-
-
 # FRD: False-Region Debiasing for WSSS (on top of MCTformer)
 
 This repository contains our FRD implementation and utilities to:
@@ -76,7 +72,26 @@ python main.py --model deit_small_MCTformerV2_patch16_224
 --gen_attention_maps  Enable CAM generation mode (no training; use --resume; outputs to --cam-npy-dir)  
 --attention-type  CAM type. 'fused' = class-token + patch affinity (default)  
 --layer-index   Transformer block index for CAM (e.g., 12 = last layer; default 12)  
-
+#### Pesudo Seed Result
+#### PASCAL VOC 2012 dataset
+<table>
+  <thead>
+    <tr>
+      <th style="text-align:center;">Model</th>
+      <th style="text-align:center;">Backbone</th>
+      <th style="text-align:center;">mIoU</th>
+      <th style="text-align:center;">Weights</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align:center;">MCTformer-V2</td>
+      <td style="text-align:center;">DeiT-small</td>
+      <td style="text-align:center;">64.915%</td>
+      <td style="text-align:center;"><a href="https://drive.google.com/file/d/1loK45CexEmkilebWFlDUp3zACH0-F6vr/view?usp=sharing">Google drive</a></td>
+    </tr>
+  </tbody>
+</table>
 
 ### Verify the results
 ```text
