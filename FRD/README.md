@@ -89,8 +89,9 @@ VOC2012_org/
 ```
 
 ### Generate attention maps
+```text
 python main.py --model deit_small_MCTformerV2_patch16_224 --data-set VOC12MS --img-list train_id.txt --data-path ./dataset/VOC2012_org --output_dir ./result_dir/MCTformer_results/VOC2012_org --resume ./ckpt/FRD_VOC_checkpoint.pth --gen_attention_maps --attention-type fused --layer-index 12 --cam-npy-dir ./result_dir/MCTformer_results/VOC2012_org/attn-patchrefine-npy-ms
-
+```
 ```text
 --data-path The dataset path
 --img-list Here train_id.txt is used to generate attention maps 
@@ -103,8 +104,9 @@ python main.py --model deit_small_MCTformerV2_patch16_224 --data-set VOC12MS --i
 ```
 
 ### Verify the results
+```text
 python evaluation.py --list train_id.txt --data-set VOC12 --data-path ./dataset/VOC2012_org --type npy --predict_dir ./result_dir/MCTformer_results/VOC2012_org/attn-patchrefine-npy-ms --curve True --start 38 --comment eval_result
-
+```
 ```text
 --data-path The dataset path
 --predict_dir Please use the same path as the --cam-npy-dir in the previous command.
@@ -117,8 +119,9 @@ python evaluation.py --list train_id.txt --data-set VOC12 --data-path ./dataset/
 Example If it is 0.59, please fill in -- 59
 
 ### Generate pseudo label 
+```text
 python evaluation.py --list train_id.txt --data-set VOC12 --data-path ./dataset/VOC2012_org --type npy --predict_dir ./result_dir/MCTformer_results/VOC2012_org/attn-patchrefine-npy-ms --t 59 --out-dir ./result_dir/MCTformer_results/VOC2012_org/pseudo-mask-ms-crf --out-crf 
-
+```
 ```text
 --predict_dir Please use the same path as the --predict_dir in the previous command.
 --out-dir For the pseudo label path, please put it in the same folder, for example, put it in ./result_dir/MCTformer_results/FRD_20220311_6m/. In this folder, the pseudo-mask-ms-crf is here
