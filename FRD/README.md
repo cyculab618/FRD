@@ -89,16 +89,16 @@ python main.py \
 --no-if_eval_miou
 ```
 
->--data-path          VOC dataset root (contains voc12/VOCdevkit/VOC2012/…)
->--img-list           Training image ID list (e.g., train_id.txt / train_aug_id.txt)
->--output_dir         Where logs/checkpoints are saved
->--finetune           Init weights (official MCTformer checkpoint)
->--use-prototypes     Enable FRD (prototype loss)
->--prototypes_weight  Weight of FRD loss (e.g., 0.12)
->--mask_thresh        CAM foreground threshold used by FRD (e.g., 0.49)
->--no-if_eval_miou    Disable on-the-fly mIoU eval during training (faster)
->--batch-size / --epochs / --lr / --warmup-* / --min-lr  Usual training knobs
->--layer-index        Attention layer used internally for CAM cues (keep 12)
+>--data-path          VOC dataset root (contains voc12/VOCdevkit/VOC2012/…)  
+>--img-list           Training image ID list (e.g., train_id.txt / train_aug_id.txt)  
+>--output_dir         Where logs/checkpoints are saved  
+>--finetune           Init weights (official MCTformer checkpoint)  
+>--use-prototypes     Enable FRD (prototype loss)  
+>--prototypes_weight  Weight of FRD loss (e.g., 0.12)  
+>--mask_thresh        CAM foreground threshold used by FRD (e.g., 0.49)  
+>--no-if_eval_miou    Disable on-the-fly mIoU eval during training (faster)  
+>--batch-size / --epochs / --lr / --warmup-* / --min-lr  Usual training knobs  
+>--layer-index        Attention layer used internally for CAM cues (keep 12)  
 
 #### Notes
 
