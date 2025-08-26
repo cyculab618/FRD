@@ -17,11 +17,11 @@ Fig.1 - Overview of MCTformer
 
 This repository contains our FRD implementation and utilities to:
 - generate CAMs,
-- search the best CAM threshold on training set,
+- search the best CAM threshold on **training set**,
 - export CRF-refined pseudo labels for training a downstream segmentation model.
 
 > **Note**    
-> If you need to train or reproduce vanilla MCTformer, please refer to the original project (see “References”).
+> If you need to **train or reproduce vanilla MCTformer**, please refer to the original project (see “References”).
 
 ## Prerequisite
 - Ubuntu 20.04, with Python 3.10.13 and the following python dependencies.
@@ -89,6 +89,8 @@ python main.py \
 --no-if_eval_miou
 ```
 
+<details open>
+<summary><strong>English</strong> — click to collapse/expand</summary>
 >--data-path          VOC dataset root (contains voc12/VOCdevkit/VOC2012/…)  
 >--img-list           Training image ID list (e.g., train_id.txt / train_aug_id.txt)  
 >--output_dir         Where logs/checkpoints are saved  
@@ -99,6 +101,7 @@ python main.py \
 >--no-if_eval_miou    Disable on-the-fly mIoU eval during training (faster)  
 >--batch-size / --epochs / --lr / --warmup-* / --min-lr  Usual training knobs  
 >--layer-index        Attention layer used internally for CAM cues (keep 12)  
+</details>
 
 #### Notes
 
