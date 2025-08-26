@@ -20,7 +20,7 @@ This repository contains our FRD implementation and utilities to:
 - search the best CAM threshold on **training set**,
 - export CRF-refined pseudo labels for training a downstream segmentation model.
 
-> **Note**    
+> **Note🔎**    
 > If you need to **train or reproduce vanilla MCTformer**, please refer to the original project (see “References”).
 
 ## Prerequisite
@@ -89,21 +89,21 @@ python main.py \
 --no-if_eval_miou
 ```
 
-<details open>
-<summary><strong>English</strong> — click to collapse/expand</summary>
->--data-path          VOC dataset root (contains voc12/VOCdevkit/VOC2012/…)  
->--img-list           Training image ID list (e.g., train_id.txt / train_aug_id.txt)  
->--output_dir         Where logs/checkpoints are saved  
->--finetune           Init weights (official MCTformer checkpoint)  
->--use-prototypes     Enable FRD (prototype loss)  
+<details>
+<summary>🔧 Arguments</summary>
+>--data-path  VOC dataset root (contains voc12/VOCdevkit/VOC2012/…)  
+>--img-list   Training image ID list (e.g., train_id.txt / train_aug_id.txt)  
+>--output_dir  Where logs/checkpoints are saved  
+>--finetune    Init weights (official MCTformer checkpoint)  
+>--use-prototypes  Enable FRD (prototype loss)  
 >--prototypes_weight  Weight of FRD loss (e.g., 0.12)  
->--mask_thresh        CAM foreground threshold used by FRD (e.g., 0.49)  
->--no-if_eval_miou    Disable on-the-fly mIoU eval during training (faster)  
+>--mask_thresh   CAM foreground threshold used by FRD (e.g., 0.49)  
+>--no-if_eval_miou  Disable on-the-fly mIoU eval during training (faster)  
 >--batch-size / --epochs / --lr / --warmup-* / --min-lr  Usual training knobs  
->--layer-index        Attention layer used internally for CAM cues (keep 12)  
+>--layer-index   Attention layer used internally for CAM cues (keep 12)  
 </details>
 
-#### Notes
+#### Notes🔎
 
 - For full training, set `--epochs` to your official schedule (the example 5 is only for a quick run) and adjust the learning rate as needed.
 - After training, `--output_dir` will contain `checkpoint.pth` and `checkpoint_best_patch.pth`; when generating CAMs (Step 1), use `checkpoint_best_patch.pth` as `--resume`.
@@ -118,7 +118,8 @@ python main.py --model deit_small_MCTformerV2_patch16_224
 --resume ./ckpt/FRD_VOC_checkpoint.pth --gen_attention_maps --attention-type fused \
 --layer-index 12 --cam-npy-dir ./result_dir/MCTformer_results/VOC2012_org/attn-patchrefine-npy-ms
 ```
-
+<details>
+<summary>🔧 Arguments</summary>
 >--data-path The dataset path  
 >--img-list Here train_id.txt is used to generate attention maps  
 >--output_dir  Output path  
@@ -127,7 +128,7 @@ python main.py --model deit_small_MCTformerV2_patch16_224
 >--gen_attention_maps  Enable CAM generation mode (no training; use --resume; outputs to --cam-npy-dir)  
 >--attention-type  CAM type. 'fused' = class-token + patch affinity (default)  
 >--layer-index   Transformer block index for CAM (e.g., 12 = last layer; default 12)  
-
+</details>
 
 ### Verify the results
 ```text
@@ -135,13 +136,14 @@ python evaluation.py --list train_id.txt --data-set VOC12 --data-path ./dataset/
 --type npy --predict_dir ./result_dir/MCTformer_results/VOC2012_org/attn-patchrefine-npy-ms \
 --curve True --start 38 --comment eval_result
 ```
-
+<details>
+<summary>🔧 Arguments</summary>
 >--data-path The dataset path  
 >--predict_dir Please use the same path as the --cam-npy-dir in the previous command.  
 >--start    Threshold start  
 >--curve    Sweep thresholds and report the best mIoU（True/False）  
 >--comment   A tag written to eval record/log（e.g.eval_result）  
-
+</details>
 
 ## After verification, please change the following --t parameter to the optimal threshold output after running the above results
 Example If it is 0.59, please fill in -- 59
@@ -152,6 +154,8 @@ python evaluation.py --list train_id.txt --data-set VOC12 --data-path ./dataset/
 --type npy --predict_dir ./result_dir/MCTformer_results/VOC2012_org/attn-patchrefine-npy-ms \
 --t 59 --out-dir ./result_dir/MCTformer_results/VOC2012_org/pseudo-mask-ms-crf --out-crf 
 ```
-
+<details>
+<summary>🔧 Arguments</summary>
 >--predict_dir Please use the same path as the --predict_dir in the previous command.  
 >--out-dir For the pseudo label path, please put it in the same folder, for example, put it in ./result_dir/MCTformer_results/FRD_20220311_6m/. In this folder, the pseudo-mask-ms-crf is here
+</details>
