@@ -116,12 +116,13 @@ python main.py \
 ---
 
 ### Generate attention maps
-
+```text
 python main.py --model deit_small_MCTformerV2_patch16_224 
 --data-set VOC12MS --img-list train_id.txt \
 --data-path ./dataset/VOC2012_org --output_dir ./result_dir/MCTformer_results/VOC2012_org \
 --resume ./ckpt/FRD_VOC_checkpoint.pth --gen_attention_maps --attention-type fused \
 --layer-index 12 --cam-npy-dir ./result_dir/MCTformer_results/VOC2012_org/attn-patchrefine-npy-ms
+```
 
 <details>
 <summary>🔧 Arguments</summary>
