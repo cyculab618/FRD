@@ -12,6 +12,7 @@ The pytorch code for our CVPR2022 paper [Multi-class Token Transformer for Weakl
 Fig.1 - Overview of MCTformer
 </p>
 
+---
 
 # FRD: Feature Representation Discrepancy for WSSS (on top of MCTformer)
 
@@ -30,7 +31,7 @@ pip install -r requirements.txt
 ```
 - Download [the PASCAL VOC 2012 development kit](http://host.robots.ox.ac.uk/pascal/VOC/voc2012).
 
-
+---
 
 # FRD step
 
@@ -75,6 +76,8 @@ VOC2012_org/
   </tbody>
 </table>
 
+---
+
 ### Train (FRD)
 ```text
 python main.py \
@@ -110,6 +113,7 @@ python main.py \
 - After training, `--output_dir` will contain `checkpoint.pth` and `checkpoint_best_patch.pth`; when generating CAMs (Step 1), use `checkpoint_best_patch.pth` as `--resume`.
 - If your dataset path is `./dataset/WSSS_dataset/VOC2012_org`, update `--data-path` accordingly.
 
+---
 
 ### Generate attention maps
 
@@ -133,6 +137,8 @@ python main.py --model deit_small_MCTformerV2_patch16_224
 
 </details>
 
+---
+
 ### Verify the results
 ```text
 python evaluation.py --list train_id.txt --data-set VOC12 --data-path ./dataset/VOC2012_org 
@@ -149,8 +155,12 @@ python evaluation.py --list train_id.txt --data-set VOC12 --data-path ./dataset/
 - --comment   A tag written to eval record/log（e.g.eval_result）  
 </details>
 
+---
+
 ## After verification, please change the following --t parameter to the optimal threshold output after running the above results
 Example If it is 0.59, please fill in -- 59
+
+---
 
 ### Generate pseudo label 
 ```text
