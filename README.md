@@ -110,7 +110,12 @@ please reference [MCTformer](https://github.com/xulianuwa/MCTformer)
 </p>
 
 ---
+## FRD step
+please reference [FRD](https://github.com/cyculab618/FRD/blob/reconstruct/FRD/README.md)
+
+---
 
 ## Contact
 If you have any questions, you can either create issues or contact us by email
 [cyculab618@gmail.com](cyculab618@gmail.com)
+
